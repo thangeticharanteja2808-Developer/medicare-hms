@@ -1,0 +1,7 @@
+__pycache__/ 
+*.pyc 
+*.pyo 
+hms_database.sqlite3 
+/staticfiles/ 
+/media/ 
+git/ 
