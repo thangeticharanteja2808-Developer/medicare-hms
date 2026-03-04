@@ -1,0 +1,70 @@
+{% extends "patients/base.html" %}
+{% block title_suffix %} — Appointments{% endblock %}
+{% block page_title %}Appointments{% endblock %}
+{% block breadcrumb %}Appointments{% endblock %}
+
+{% block content %}
+<div class="filters-bar">
+  <form method="get" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <div class="search-wrap">
+      <span class="search-ico">🔍</span>
+      <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search patient, doctor…" style="width:240px">
+    </div>
+    <select name="status" class="form-select" style="width:140px">
+      <option value="">All Status</option>
+      <option value="Pending" {% if status_f == "Pending" %}selected{% endif %}>Pending</option><option value="Confirmed" {% if status_f == "Confirmed" %}selected{% endif %}>Confirmed</option><option value="Completed" {% if status_f == "Completed" %}selected{% endif %}>Completed</option><option value="Cancelled" {% if status_f == "Cancelled" %}selected{% endif %}>Cancelled</option>
+    </select>
+    <select name="department" class="form-select" style="width:170px">
+      <option value="">All Departments</option>
+      {% for d in departments %}<option value="{{ d.0 }}" {% if dept == d.0 %}selected{% endif %}>{{ d.1 }}</option>{% endfor %}
+    </select>
+    <input type="date" name="date" value="{{ date_f }}" class="form-control" style="width:160px">
+    <button type="submit" class="btn btn-secondary">Filter</button>
+    {% if q or status_f or dept or date_f %}<a href="{% url 'appointment_list' %}" class="btn btn-secondary">✕ Clear</a>{% endif %}
+    <div class="right"><a href="{% url 'appointment_add' %}" class="btn btn-primary">➕ Schedule Appointment</a></div>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-header"><span class="card-title">📅 Appointments <span style="color:var(--text3);font-weight:400;font-size:13px">({{ total }})</span></span></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Patient</th><th>Date & Time</th><th>Doctor</th><th>Department</th><th>Type</th><th>Reason</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for a in appointments %}
+        <tr>
+          <td>
+            <div class="primary"><a href="{% url 'patient_detail' a.patient.pk %}" style="color:var(--text);text-decoration:none">{{ a.patient.full_name }}</a></div>
+            <div class="secondary" style="font-family:var(--mono)">{{ a.patient.mrn }}</div>
+          </td>
+          <td>
+            <div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--blue)">{{ a.appointment_date }}</div>
+            <div class="secondary">{{ a.appointment_time|time:"H:i" }} ({{ a.duration_minutes }} min)</div>
+          </td>
+          <td><div style="font-size:12.5px;font-weight:600">{{ a.doctor }}</div></td>
+          <td><span class="badge badge-teal">{{ a.department }}</span></td>
+          <td><span class="badge badge-slate">{{ a.appointment_type }}</span></td>
+          <td><div style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px">{{ a.reason }}</div></td>
+          <td><span class="badge {% if a.priority == 'High' or a.priority == 'Urgent' %}badge-red{% elif a.priority == 'Normal' %}badge-blue{% else %}badge-slate{% endif %}">{{ a.priority }}</span></td>
+          <td><span class="badge {% if a.status == 'Confirmed' %}badge-green{% elif a.status == 'Pending' %}badge-amber{% elif a.status == 'Completed' %}badge-teal{% elif a.status == 'Cancelled' %}badge-red{% else %}badge-slate{% endif %}">{{ a.status }}</span></td>
+          <td>
+            <div class="action-group">
+              <a href="{% url 'appointment_edit' a.pk %}" class="btn btn-icon btn-secondary" title="Edit">✏️</a>
+              {% if a.status == 'Pending' %}
+              <a href="{% url 'appointment_status' a.pk 'Confirmed' %}" class="btn btn-success btn-sm" title="Confirm">✓</a>
+              <a href="{% url 'appointment_status' a.pk 'Cancelled' %}" class="btn btn-danger btn-sm" title="Cancel">✕</a>
+              {% elif a.status == 'Confirmed' %}
+              <a href="{% url 'appointment_status' a.pk 'Completed' %}" class="btn btn-secondary btn-sm">Done</a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📅</div><div class="empty-text">No appointments found</div></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div style="padding:12px 20px;border-top:1px solid var(--border);font-size:12px;color:var(--text3)">{{ total }} appointment{{ total|pluralize }}</div>
+</div>
+{% endblock %}

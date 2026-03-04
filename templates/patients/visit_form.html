@@ -1,0 +1,207 @@
+{% extends "patients/base.html" %}
+{% block title_suffix %} — {{ action }} Visit Record{% endblock %}
+{% block page_title %}{{ action }} Visit Record{% endblock %}
+{% block breadcrumb %}<a href="{% url 'visit_list' %}" style="color:var(--text3);text-decoration:none">Visits</a> › {{ action }}{% endblock %}
+
+{% block content %}
+<form method="post">
+{% csrf_token %}
+{{ formset.management_form }}
+
+<div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:20px">
+  <a href="{% url 'visit_list' %}" class="btn btn-secondary">← Cancel</a>
+  <button type="submit" class="btn btn-primary">💾 Save Visit Record</button>
+</div>
+
+<!-- PATIENT & VISIT INFO -->
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header"><span class="card-title">👤 Patient & Visit Information</span></div>
+  <div class="card-body">
+    <div class="form-grid g-3">
+      <div class="form-group">
+        <label class="form-label required">Patient</label>
+        {{ form.patient }}{{ form.patient.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label required">Visit Date</label>
+        {{ form.visit_date }}{{ form.visit_date.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label required">Visit Time</label>
+        {{ form.visit_time }}{{ form.visit_time.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label required">Doctor</label>
+        {{ form.doctor }}{{ form.doctor.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label required">Department</label>
+        {{ form.department }}{{ form.department.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Visit Type</label>
+        {{ form.visit_type }}{{ form.visit_type.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        {{ form.status }}{{ form.status.errors }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VITALS -->
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header"><span class="card-title">📊 Vital Signs</span></div>
+  <div class="card-body">
+    <div class="form-grid g-4">
+      <div class="form-group">
+        <label class="form-label">Blood Pressure <span style="color:var(--text3);font-weight:400">(mmHg)</span></label>
+        {{ form.blood_pressure }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Pulse Rate <span style="color:var(--text3);font-weight:400">(bpm)</span></label>
+        {{ form.pulse_rate }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Temperature <span style="color:var(--text3);font-weight:400">(°F)</span></label>
+        {{ form.temperature }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">SpO₂ <span style="color:var(--text3);font-weight:400">(%)</span></label>
+        {{ form.spo2 }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Weight <span style="color:var(--text3);font-weight:400">(kg)</span></label>
+        {{ form.weight }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Height <span style="color:var(--text3);font-weight:400">(cm)</span></label>
+        {{ form.height }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">BMI <span style="color:var(--text3);font-weight:400">(auto-calc)</span></label>
+        {{ form.bmi }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Resp. Rate <span style="color:var(--text3);font-weight:400">(/min)</span></label>
+        {{ form.respiratory_rate }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CLINICAL NOTES -->
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header"><span class="card-title">📝 Clinical Notes</span></div>
+  <div class="card-body">
+    <div class="form-grid g-2">
+      <div class="form-group col-full">
+        <label class="form-label required">Chief Complaint</label>
+        {{ form.chief_complaint }}{{ form.chief_complaint.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">History of Presenting Illness</label>
+        {{ form.history_of_illness }}{{ form.history_of_illness.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Physical Examination Findings</label>
+        {{ form.physical_examination }}{{ form.physical_examination.errors }}
+      </div>
+      <div class="form-group col-full">
+        <label class="form-label required">Diagnosis / Impression</label>
+        {{ form.diagnosis }}{{ form.diagnosis.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Treatment Plan</label>
+        {{ form.treatment_plan }}{{ form.treatment_plan.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Investigations Ordered</label>
+        {{ form.investigations_ordered }}{{ form.investigations_ordered.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Follow-up Instructions</label>
+        {{ form.follow_up_instructions }}{{ form.follow_up_instructions.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Additional Notes / Advice</label>
+        {{ form.additional_notes }}{{ form.additional_notes.errors }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRESCRIPTIONS -->
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header">
+    <span class="card-title">💊 Prescriptions</span>
+    <button type="button" onclick="addPrescription()" class="btn btn-secondary btn-sm">➕ Add Medicine</button>
+  </div>
+  <div class="card-body">
+    <div id="prescriptions-container">
+      {% for presc_form in formset %}
+      <div class="formset-item">
+        <div class="formset-header">
+          <span class="formset-label">Rx #{{ forloop.counter }}</span>
+          <label class="delete-row">
+            {{ presc_form.DELETE }} Delete this entry
+          </label>
+        </div>
+        {% for hidden in presc_form.hidden_fields %}{{ hidden }}{% endfor %}
+        <div class="form-grid g-4">
+          <div class="form-group">
+            <label class="form-label">Drug Name</label>{{ presc_form.drug_name }}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Dosage</label>{{ presc_form.dosage }}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Frequency</label>{{ presc_form.frequency }}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Duration</label>{{ presc_form.duration }}
+          </div>
+          <div class="form-group col-full">
+            <label class="form-label">Special Instructions</label>{{ presc_form.instructions }}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div style="display:flex;justify-content:flex-end;gap:10px">
+  <a href="{% url 'visit_list' %}" class="btn btn-secondary">Cancel</a>
+  <button type="submit" class="btn btn-primary">💾 Save Visit Record</button>
+</div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let totalForms = parseInt(document.getElementById('id_presc-TOTAL_FORMS').value);
+function addPrescription(){
+  const container = document.getElementById('prescriptions-container');
+  const idx = totalForms;
+  const html = `
+    <div class="formset-item">
+      <div class="formset-header">
+        <span class="formset-label">Rx #${idx+1}</span>
+      </div>
+      <input type="hidden" name="presc-${idx}-id" id="id_presc-${idx}-id">
+      <div class="form-grid g-4">
+        <div class="form-group"><label class="form-label">Drug Name</label><input type="text" name="presc-${idx}-drug_name" class="form-control" placeholder="Drug name"></div>
+        <div class="form-group"><label class="form-label">Dosage</label><input type="text" name="presc-${idx}-dosage" class="form-control" placeholder="e.g. 500mg"></div>
+        <div class="form-group"><label class="form-label">Frequency</label><input type="text" name="presc-${idx}-frequency" class="form-control" placeholder="e.g. Twice daily"></div>
+        <div class="form-group"><label class="form-label">Duration</label><input type="text" name="presc-${idx}-duration" class="form-control" placeholder="e.g. 5 days"></div>
+        <div class="form-group col-full"><label class="form-label">Special Instructions</label><input type="text" name="presc-${idx}-instructions" class="form-control" placeholder="Special instructions"></div>
+      </div>
+    </div>`;
+  container.insertAdjacentHTML('beforeend', html);
+  totalForms++;
+  document.getElementById('id_presc-TOTAL_FORMS').value = totalForms;
+}
+</script>
+{% endblock %}

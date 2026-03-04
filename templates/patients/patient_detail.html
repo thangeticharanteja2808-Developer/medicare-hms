@@ -1,0 +1,174 @@
+{% extends "patients/base.html" %}
+{% block title_suffix %} — {{ patient.full_name }}{% endblock %}
+{% block page_title %}{{ patient.full_name }}{% endblock %}
+{% block breadcrumb %}<a href="{% url 'patient_list' %}" style="color:var(--text3);text-decoration:none">Patients</a> › {{ patient.mrn }}{% endblock %}
+
+{% block content %}
+<!-- PATIENT HERO -->
+<div class="patient-hero">
+  <div class="p-avatar">{{ patient.first_name|first }}{{ patient.last_name|first }}</div>
+  <div style="flex:1">
+    <div class="p-name">{{ patient.full_name }}</div>
+    <div class="p-meta">
+      <span>🎂 {{ patient.age }} years</span>
+      <span>⚥ {{ patient.gender }}</span>
+      <span>🩸 {{ patient.blood_group|default:"—" }}</span>
+      <span>📞 {{ patient.phone }}</span>
+      {% if patient.email %}<span>✉ {{ patient.email }}</span>{% endif %}
+    </div>
+    {% if patient.allergies and patient.allergies != 'None' %}
+    <div class="allergy-warn">⚠️ Allergy: {{ patient.allergies }}</div>
+    {% endif %}
+  </div>
+  <div style="text-align:right">
+    <div class="p-mrn">{{ patient.mrn }}</div>
+    <span class="badge {% if patient.status == 'Active' %}badge-green{% else %}badge-slate{% endif %}" style="margin-top:8px;display:inline-block">{{ patient.status }}</span>
+    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">
+      <a href="{% url 'patient_edit' patient.pk %}" class="btn btn-secondary btn-sm">✏️ Edit</a>
+      <a href="{% url 'visit_add' %}?patient={{ patient.pk }}" class="btn btn-primary btn-sm">📋 Add Visit</a>
+      <a href="{% url 'appointment_add' %}?patient={{ patient.pk }}" class="btn btn-blue btn-sm">📅 Schedule</a>
+    </div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tab-nav">
+  <a class="tab-btn active" id="tab-overview-btn" onclick="showTab('overview')" href="#">👤 Overview</a>
+  <a class="tab-btn" id="tab-visits-btn" onclick="showTab('visits')" href="#">📋 Visit Records ({{ visits|length }})</a>
+  <a class="tab-btn" id="tab-appts-btn" onclick="showTab('appts')" href="#">📅 Appointments ({{ appointments|length }})</a>
+</div>
+
+<!-- TAB: OVERVIEW -->
+<div id="tab-overview">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div class="card">
+      <div class="card-header"><span class="card-title">📋 Personal Details</span></div>
+      <div class="card-body" style="padding:14px 20px">
+        <div class="detail-row"><div class="detail-key">Full Name</div><div class="detail-val">{{ patient.full_name }}</div></div>
+        <div class="detail-row"><div class="detail-key">Date of Birth</div><div class="detail-val">{{ patient.date_of_birth|date:"d M Y" }}</div></div>
+        <div class="detail-row"><div class="detail-key">Age</div><div class="detail-val">{{ patient.age }} years</div></div>
+        <div class="detail-row"><div class="detail-key">Gender</div><div class="detail-val">{{ patient.gender }}</div></div>
+        <div class="detail-row"><div class="detail-key">Blood Group</div><div class="detail-val">{{ patient.blood_group|default:"—" }}</div></div>
+        <div class="detail-row"><div class="detail-key">Phone</div><div class="detail-val">{{ patient.phone }}</div></div>
+        <div class="detail-row"><div class="detail-key">Email</div><div class="detail-val">{{ patient.email|default:"—" }}</div></div>
+        <div class="detail-row"><div class="detail-key">Address</div><div class="detail-val">{{ patient.address|default:"—" }}{% if patient.city %}, {{ patient.city }}{% endif %}{% if patient.pincode %} - {{ patient.pincode }}{% endif %}</div></div>
+        <div class="detail-row"><div class="detail-key">Registered On</div><div class="detail-val">{{ patient.created_at|date:"d M Y" }}</div></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <div class="card-header"><span class="card-title">🩺 Medical History</span></div>
+        <div class="card-body" style="padding:14px 20px">
+          <div class="detail-row"><div class="detail-key">Allergies</div><div class="detail-val" style="{% if patient.allergies and patient.allergies != 'None' %}color:var(--red);font-weight:600{% endif %}">{{ patient.allergies|default:"None" }}</div></div>
+          <div class="detail-row"><div class="detail-key">Conditions</div><div class="detail-val">{{ patient.chronic_conditions|default:"None" }}</div></div>
+          <div class="detail-row"><div class="detail-key">Medications</div><div class="detail-val">{{ patient.current_medications|default:"None" }}</div></div>
+          <div class="detail-row"><div class="detail-key">Surgeries</div><div class="detail-val">{{ patient.past_surgical_history|default:"None" }}</div></div>
+          <div class="detail-row"><div class="detail-key">Family History</div><div class="detail-val">{{ patient.family_history|default:"None" }}</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">🚨 Emergency & Insurance</span></div>
+        <div class="card-body" style="padding:14px 20px">
+          <div class="detail-row"><div class="detail-key">Emergency Contact</div><div class="detail-val">{{ patient.emergency_contact_name|default:"—" }}{% if patient.emergency_contact_phone %} · {{ patient.emergency_contact_phone }}{% endif %}</div></div>
+          <div class="detail-row"><div class="detail-key">Relation</div><div class="detail-val">{{ patient.emergency_contact_relation|default:"—" }}</div></div>
+          <div class="detail-row"><div class="detail-key">Insurance</div><div class="detail-val">{{ patient.insurance_provider|default:"—" }}</div></div>
+          <div class="detail-row"><div class="detail-key">Policy No.</div><div class="detail-val">{{ patient.insurance_policy_number|default:"—" }}</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: VISITS -->
+<div id="tab-visits" style="display:none">
+  <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+    <a href="{% url 'visit_add' %}?patient={{ patient.pk }}" class="btn btn-primary">📋 Add Visit Record</a>
+  </div>
+  {% if visits %}
+  {% for v in visits %}
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-header">
+      <div>
+        <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--blue)">{{ v.visit_date|date:"d M Y" }}</span>
+        <span style="color:var(--text3);font-size:12px;margin-left:8px">{{ v.visit_time|time:"H:i" }}</span>
+        <span class="badge badge-teal" style="margin-left:10px">{{ v.department }}</span>
+        <span class="badge badge-slate" style="margin-left:5px">{{ v.visit_type }}</span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <a href="{% url 'visit_detail' v.pk %}" class="btn btn-secondary btn-sm">👁 View</a>
+        <a href="{% url 'visit_edit' v.pk %}" class="btn btn-secondary btn-sm">✏️ Edit</a>
+      </div>
+    </div>
+    <div class="card-body" style="padding:14px 20px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">Diagnosis</div>
+          <div style="font-weight:600;font-size:14px">{{ v.diagnosis }}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px">{{ v.doctor }}</div>
+          {% if v.chief_complaint %}<div style="font-size:12px;color:var(--text3);margin-top:4px;font-style:italic">CC: {{ v.chief_complaint|truncatechars:100 }}</div>{% endif %}
+        </div>
+        <div>
+          {% if v.prescriptions.count %}
+          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Prescriptions ({{ v.prescriptions.count }})</div>
+          {% for rx in v.prescriptions.all|slice:":3" %}
+          <div style="font-size:12px;color:var(--text2);margin-bottom:3px">💊 {{ rx.drug_name }} {{ rx.dosage }} — {{ rx.frequency }}</div>
+          {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+  {% else %}
+  <div class="card"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No visit records yet</div></div></div>
+  {% endif %}
+</div>
+
+<!-- TAB: APPOINTMENTS -->
+<div id="tab-appts" style="display:none">
+  <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+    <a href="{% url 'appointment_add' %}?patient={{ patient.pk }}" class="btn btn-primary">📅 Schedule Appointment</a>
+  </div>
+  {% if appointments %}
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date & Time</th><th>Doctor</th><th>Department</th><th>Type</th><th>Priority</th><th>Reason</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for a in appointments %}
+          <tr>
+            <td><div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--blue)">{{ a.appointment_date }}</div><div class="secondary">{{ a.appointment_time|time:"H:i" }} ({{ a.duration_minutes }} min)</div></td>
+            <td><div style="font-weight:600;font-size:12.5px">{{ a.doctor }}</div></td>
+            <td><span class="badge badge-teal">{{ a.department }}</span></td>
+            <td><span class="badge badge-slate">{{ a.appointment_type }}</span></td>
+            <td><span class="badge {% if a.priority == 'High' or a.priority == 'Urgent' %}badge-red{% else %}badge-slate{% endif %}">{{ a.priority }}</span></td>
+            <td><div style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px">{{ a.reason }}</div></td>
+            <td><span class="badge {% if a.status == 'Confirmed' %}badge-green{% elif a.status == 'Pending' %}badge-amber{% elif a.status == 'Cancelled' %}badge-red{% else %}badge-teal{% endif %}">{{ a.status }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="card"><div class="empty-state"><div class="empty-icon">📅</div><div class="empty-text">No appointments scheduled</div></div></div>
+  {% endif %}
+</div>
+
+<div style="margin-top:20px;display:flex;justify-content:flex-end">
+  <a href="{% url 'patient_delete' patient.pk %}" class="btn btn-danger">🗑 Delete Patient Record</a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showTab(name){
+  ['overview','visits','appts'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display=t===name?'block':'none';
+    document.getElementById('tab-'+t+'-btn').classList.toggle('active',t===name);
+  });
+}
+const hash=location.hash.replace('#','');
+if(['visits','appts'].includes(hash))showTab(hash);
+</script>
+{% endblock %}

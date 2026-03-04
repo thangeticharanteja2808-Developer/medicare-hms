@@ -1,0 +1,62 @@
+{% extends "patients/base.html" %}
+{% block title_suffix %} — Visit Records{% endblock %}
+{% block page_title %}Visit Records{% endblock %}
+{% block breadcrumb %}Visit Records{% endblock %}
+
+{% block content %}
+<div class="filters-bar">
+  <form method="get" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <div class="search-wrap">
+      <span class="search-ico">🔍</span>
+      <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search patient, diagnosis…" style="width:240px">
+    </div>
+    <select name="patient" class="form-select" style="width:210px">
+      <option value="">All Patients</option>
+      {% for p in patients %}<option value="{{ p.pk }}" {% if patient_id == p.pk|stringformat:'s' %}selected{% endif %}>{{ p.full_name }}</option>{% endfor %}
+    </select>
+    <select name="department" class="form-select" style="width:170px">
+      <option value="">All Departments</option>
+      {% for d in departments %}<option value="{{ d.0 }}" {% if dept == d.0 %}selected{% endif %}>{{ d.1 }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn btn-secondary">Filter</button>
+    {% if q or patient_id or dept %}<a href="{% url 'visit_list' %}" class="btn btn-secondary">✕ Clear</a>{% endif %}
+    <div class="right"><a href="{% url 'visit_add' %}" class="btn btn-primary">➕ New Visit Record</a></div>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-header"><span class="card-title">📋 Visit Records <span style="color:var(--text3);font-weight:400;font-size:13px">({{ total }})</span></span></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Patient</th><th>Date / Time</th><th>Doctor</th><th>Department</th><th>Type</th><th>Diagnosis</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for v in visits %}
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--blue));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex-shrink:0">{{ v.patient.first_name|first }}{{ v.patient.last_name|first }}</div>
+              <div><div class="primary">{{ v.patient.full_name }}</div><div class="secondary" style="font-family:var(--mono)">{{ v.patient.mrn }}</div></div>
+            </div>
+          </td>
+          <td><div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--blue)">{{ v.visit_date|date:"d M Y" }}</div><div class="secondary">{{ v.visit_time|time:"H:i" }}</div></td>
+          <td><div style="font-size:12.5px;font-weight:600">{{ v.doctor }}</div></td>
+          <td><span class="badge badge-teal">{{ v.department }}</span></td>
+          <td><span class="badge badge-slate">{{ v.visit_type }}</span></td>
+          <td><div style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px">{{ v.diagnosis|truncatechars:50 }}</div></td>
+          <td><span class="badge {% if v.status == 'Completed' %}badge-green{% elif v.status == 'Ongoing' %}badge-amber{% else %}badge-red{% endif %}">{{ v.status }}</span></td>
+          <td>
+            <div class="action-group">
+              <a href="{% url 'visit_detail' v.pk %}" class="btn btn-icon btn-secondary" title="View">👁</a>
+              <a href="{% url 'visit_edit' v.pk %}" class="btn btn-icon btn-secondary" title="Edit">✏️</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No visit records found</div></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div style="padding:12px 20px;border-top:1px solid var(--border);font-size:12px;color:var(--text3)">{{ total }} visit record{{ total|pluralize }}</div>
+</div>
+{% endblock %}

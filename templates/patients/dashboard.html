@@ -1,0 +1,132 @@
+{% extends "patients/base.html" %}
+{% block title_suffix %} — Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block breadcrumb %}Overview{% endblock %}
+
+{% block content %}
+<!-- STAT CARDS -->
+<div class="stats-row">
+  <div class="stat-card c-teal">
+    <div class="stat-icon c-teal">👥</div>
+    <div class="stat-value">{{ total_patients }}</div>
+    <div class="stat-label">Total Patients</div>
+    <div class="stat-sub">{{ active_patients }} active</div>
+  </div>
+  <div class="stat-card c-blue">
+    <div class="stat-icon c-blue">📅</div>
+    <div class="stat-value">{{ today_appointments }}</div>
+    <div class="stat-label">Today's Appointments</div>
+    <div class="stat-sub">{{ pending_appointments }} pending</div>
+  </div>
+  <div class="stat-card c-amber">
+    <div class="stat-icon c-amber">📋</div>
+    <div class="stat-value">{{ total_visits }}</div>
+    <div class="stat-label">Visit Records</div>
+    <div class="stat-sub">{{ today_visits }} today</div>
+  </div>
+  <div class="stat-card c-green">
+    <div class="stat-icon c-green">🔔</div>
+    <div class="stat-value">{{ pending_appointments }}</div>
+    <div class="stat-label">Pending Approvals</div>
+    <div class="stat-sub">Awaiting confirmation</div>
+  </div>
+</div>
+
+<!-- QUICK ACTIONS -->
+<div class="quick-grid">
+  <a href="{% url 'patient_add' %}" class="qa">
+    <div class="qa-icon" style="background:rgba(0,194,178,.1)">➕</div>
+    <div class="qa-lbl">Register Patient</div>
+  </a>
+  <a href="{% url 'visit_add' %}" class="qa">
+    <div class="qa-icon" style="background:rgba(59,130,246,.1)">📋</div>
+    <div class="qa-lbl">New Visit Record</div>
+  </a>
+  <a href="{% url 'appointment_add' %}" class="qa">
+    <div class="qa-icon" style="background:rgba(245,158,11,.1)">📅</div>
+    <div class="qa-lbl">Schedule Appointment</div>
+  </a>
+  <a href="{% url 'patient_list' %}" class="qa">
+    <div class="qa-icon" style="background:rgba(139,92,246,.1)">👥</div>
+    <div class="qa-lbl">All Patients</div>
+  </a>
+</div>
+
+<!-- BOTTOM GRID -->
+<div class="dash-grid">
+  <!-- Today's Appointments -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">📅 Today's Appointments</span>
+      <span class="badge badge-blue">{{ today_appointments }} scheduled</span>
+    </div>
+    {% if today_appts %}
+      {% for a in today_appts %}
+      <div style="display:flex;align-items:center;gap:12px;padding:11px 20px;border-bottom:1px solid var(--border)">
+        <div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--blue);width:48px;flex-shrink:0">{{ a.appointment_time|time:"H:i" }}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ a.patient.full_name }}</div>
+          <div style="font-size:11.5px;color:var(--text3)">{{ a.doctor }} · {{ a.department }}</div>
+        </div>
+        <span class="badge {% if a.status == 'Confirmed' %}badge-green{% elif a.status == 'Pending' %}badge-amber{% else %}badge-slate{% endif %}">{{ a.status }}</span>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state"><div class="empty-icon">📅</div><div class="empty-text">No appointments today</div></div>
+    {% endif %}
+  </div>
+
+  <!-- Recent Patients -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">👥 Recent Patients</span>
+      <a href="{% url 'patient_list' %}" class="btn btn-secondary btn-sm">View All</a>
+    </div>
+    {% for p in recent_patients %}
+    <div style="display:flex;align-items:center;gap:12px;padding:11px 20px;border-bottom:1px solid var(--border)">
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--blue));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0">
+        {{ p.first_name|first }}{{ p.last_name|first }}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:13px"><a href="{% url 'patient_detail' p.pk %}" style="color:var(--text);text-decoration:none">{{ p.full_name }}</a></div>
+        <div style="font-size:11.5px;color:var(--text3);font-family:var(--mono)">{{ p.mrn }} · {{ p.blood_group }}</div>
+      </div>
+      <span class="badge {% if p.status == 'Active' %}badge-green{% else %}badge-slate{% endif %}">{{ p.status }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Upcoming appointments -->
+{% if upcoming_appts %}
+<div class="card" style="margin-top:20px">
+  <div class="card-header">
+    <span class="card-title">🗓 Upcoming Appointments</span>
+    <a href="{% url 'appointment_list' %}?status=Pending" class="btn btn-secondary btn-sm">View All Pending</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Patient</th><th>Date & Time</th><th>Doctor</th><th>Department</th><th>Type</th><th>Priority</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for a in upcoming_appts %}
+        <tr>
+          <td><div class="primary">{{ a.patient.full_name }}</div></td>
+          <td><div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--blue)">{{ a.appointment_date }}</div><div class="secondary">{{ a.appointment_time|time:"H:i" }}</div></td>
+          <td>{{ a.doctor }}</td>
+          <td><span class="badge badge-teal">{{ a.department }}</span></td>
+          <td><span class="badge badge-slate">{{ a.appointment_type }}</span></td>
+          <td><span class="badge {% if a.priority == 'Urgent' or a.priority == 'High' %}badge-red{% else %}badge-slate{% endif %}">{{ a.priority }}</span></td>
+          <td><span class="badge {% if a.status == 'Confirmed' %}badge-green{% elif a.status == 'Pending' %}badge-amber{% else %}badge-slate{% endif %}">{{ a.status }}</span></td>
+          <td>
+            {% if a.status == 'Pending' %}
+            <a href="{% url 'appointment_status' a.pk 'Confirmed' %}" class="btn btn-success btn-sm">✓ Confirm</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

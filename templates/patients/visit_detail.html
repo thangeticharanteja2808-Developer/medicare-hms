@@ -1,0 +1,85 @@
+{% extends "patients/base.html" %}
+{% block title_suffix %} — Visit Detail{% endblock %}
+{% block page_title %}Visit Record{% endblock %}
+{% block breadcrumb %}<a href="{% url 'visit_list' %}" style="color:var(--text3);text-decoration:none">Visits</a> › Detail{% endblock %}
+
+{% block content %}
+<!-- PATIENT BANNER -->
+<div style="display:flex;align-items:center;gap:16px;padding:18px 22px;background:linear-gradient(135deg,var(--navy),var(--navy2));border-radius:var(--radius);margin-bottom:20px;color:#fff">
+  <div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--blue));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;flex-shrink:0">{{ visit.patient.first_name|first }}{{ visit.patient.last_name|first }}</div>
+  <div style="flex:1">
+    <div style="font-size:18px;font-weight:800"><a href="{% url 'patient_detail' visit.patient.pk %}" style="color:#fff;text-decoration:none">{{ visit.patient.full_name }}</a></div>
+    <div style="font-size:12px;opacity:.7;margin-top:4px;display:flex;gap:14px">
+      <span>{{ visit.patient.mrn }}</span><span>{{ visit.patient.age }} yrs, {{ visit.patient.gender }}</span><span>🩸 {{ visit.patient.blood_group }}</span>
+    </div>
+  </div>
+  <div style="text-align:right">
+    <div style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--teal)">{{ visit.visit_date|date:"d M Y" }} at {{ visit.visit_time|time:"H:i" }}</div>
+    <div style="font-size:12px;opacity:.7;margin-top:4px">{{ visit.doctor }} · {{ visit.department }}</div>
+    <div style="margin-top:8px;display:flex;gap:8px;justify-content:flex-end">
+      <span class="badge badge-teal">{{ visit.visit_type }}</span>
+      <span class="badge {% if visit.status == 'Completed' %}badge-green{% else %}badge-amber{% endif %}">{{ visit.status }}</span>
+    </div>
+  </div>
+</div>
+
+<div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:18px">
+  <a href="{% url 'visit_edit' visit.pk %}" class="btn btn-secondary">✏️ Edit Record</a>
+  <a href="{% url 'visit_add' %}?patient={{ visit.patient.pk }}" class="btn btn-primary">➕ New Visit for this Patient</a>
+</div>
+
+<!-- VITALS -->
+{% if visit.blood_pressure or visit.pulse_rate or visit.temperature or visit.spo2 %}
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header"><span class="card-title">📊 Vital Signs</span></div>
+  <div class="card-body">
+    <div class="vitals-grid">
+      {% if visit.blood_pressure %}<div class="vital-box"><div class="vital-lbl">Blood Pressure</div><div class="vital-val">{{ visit.blood_pressure }}</div><div class="vital-unit">mmHg</div></div>{% endif %}
+      {% if visit.pulse_rate %}<div class="vital-box"><div class="vital-lbl">Pulse Rate</div><div class="vital-val">{{ visit.pulse_rate }}</div><div class="vital-unit">bpm</div></div>{% endif %}
+      {% if visit.temperature %}<div class="vital-box"><div class="vital-lbl">Temperature</div><div class="vital-val">{{ visit.temperature }}</div><div class="vital-unit">°F</div></div>{% endif %}
+      {% if visit.spo2 %}<div class="vital-box"><div class="vital-lbl">SpO₂</div><div class="vital-val">{{ visit.spo2 }}</div><div class="vital-unit">%</div></div>{% endif %}
+      {% if visit.weight %}<div class="vital-box"><div class="vital-lbl">Weight</div><div class="vital-val">{{ visit.weight }}</div><div class="vital-unit">kg</div></div>{% endif %}
+      {% if visit.height %}<div class="vital-box"><div class="vital-lbl">Height</div><div class="vital-val">{{ visit.height }}</div><div class="vital-unit">cm</div></div>{% endif %}
+      {% if visit.bmi %}<div class="vital-box"><div class="vital-lbl">BMI</div><div class="vital-val">{{ visit.bmi }}</div><div class="vital-unit">kg/m²</div></div>{% endif %}
+      {% if visit.respiratory_rate %}<div class="vital-box"><div class="vital-lbl">Resp. Rate</div><div class="vital-val">{{ visit.respiratory_rate }}</div><div class="vital-unit">/min</div></div>{% endif %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+<!-- CLINICAL NOTES -->
+<div class="card">
+  <div class="card-header"><span class="card-title">📝 Clinical Notes</span></div>
+  <div class="card-body" style="padding:14px 20px">
+    {% if visit.chief_complaint %}<div class="detail-row"><div class="detail-key">Chief Complaint</div><div class="detail-val">{{ visit.chief_complaint }}</div></div>{% endif %}
+    {% if visit.history_of_illness %}<div class="detail-row"><div class="detail-key">History</div><div class="detail-val">{{ visit.history_of_illness }}</div></div>{% endif %}
+    {% if visit.physical_examination %}<div class="detail-row"><div class="detail-key">Examination</div><div class="detail-val">{{ visit.physical_examination }}</div></div>{% endif %}
+    <div class="detail-row"><div class="detail-key">Diagnosis</div><div class="detail-val" style="font-weight:700;color:var(--text);background:var(--teal4);padding:6px 10px;border-radius:6px;border-left:3px solid var(--teal)">{{ visit.diagnosis }}</div></div>
+    {% if visit.treatment_plan %}<div class="detail-row"><div class="detail-key">Treatment Plan</div><div class="detail-val">{{ visit.treatment_plan }}</div></div>{% endif %}
+    {% if visit.investigations_ordered %}<div class="detail-row"><div class="detail-key">Investigations</div><div class="detail-val">{{ visit.investigations_ordered }}</div></div>{% endif %}
+    {% if visit.follow_up_instructions %}<div class="detail-row"><div class="detail-key">Follow-up</div><div class="detail-val">{{ visit.follow_up_instructions }}</div></div>{% endif %}
+    {% if visit.additional_notes %}<div class="detail-row"><div class="detail-key">Notes</div><div class="detail-val">{{ visit.additional_notes }}</div></div>{% endif %}
+  </div>
+</div>
+
+<!-- PRESCRIPTIONS -->
+<div class="card">
+  <div class="card-header"><span class="card-title">💊 Prescriptions</span><span class="badge badge-teal">{{ visit.prescriptions.count }}</span></div>
+  <div class="card-body">
+    {% for rx in visit.prescriptions.all %}
+    <div class="presc-item">
+      <div class="presc-num">{{ forloop.counter }}</div>
+      <div>
+        <div class="presc-drug">{{ rx.drug_name }} <span style="font-size:12px;color:var(--teal2);font-weight:500">{{ rx.dosage }}</span></div>
+        <div class="presc-detail">{{ rx.frequency }} · {{ rx.duration }}</div>
+        {% if rx.instructions %}<div style="font-size:11.5px;color:var(--text3);margin-top:3px">{{ rx.instructions }}</div>{% endif %}
+      </div>
+    </div>
+    {% empty %}
+    <div style="color:var(--text3);font-size:13px;text-align:center;padding:20px">No prescriptions recorded</div>
+    {% endfor %}
+  </div>
+</div>
+</div>
+{% endblock %}

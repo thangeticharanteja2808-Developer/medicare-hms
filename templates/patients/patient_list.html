@@ -1,0 +1,74 @@
+{% extends "patients/base.html" %}
+{% block title_suffix %} — Patients{% endblock %}
+{% block page_title %}Patient Management{% endblock %}
+{% block breadcrumb %}Patients{% endblock %}
+
+{% block content %}
+<div class="filters-bar">
+  <form method="get" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <div class="search-wrap">
+      <span class="search-ico">🔍</span>
+      <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search name, MRN, phone…" style="width:260px">
+    </div>
+    <select name="status" class="form-select" style="width:140px">
+      <option value="">All Status</option>
+      <option {% if status_f == 'Active' %}selected{% endif %}>Active</option>
+      <option {% if status_f == 'Inactive' %}selected{% endif %}>Inactive</option>
+      <option {% if status_f == 'Discharged' %}selected{% endif %}>Discharged</option>
+    </select>
+    <select name="gender" class="form-select" style="width:130px">
+      <option value="">All Genders</option>
+      <option {% if gender_f == 'Male' %}selected{% endif %}>Male</option>
+      <option {% if gender_f == 'Female' %}selected{% endif %}>Female</option>
+      <option {% if gender_f == 'Other' %}selected{% endif %}>Other</option>
+    </select>
+    <button type="submit" class="btn btn-secondary">Filter</button>
+    {% if q or status_f or gender_f %}<a href="{% url 'patient_list' %}" class="btn btn-secondary">✕ Clear</a>{% endif %}
+    <div class="right"><a href="{% url 'patient_add' %}" class="btn btn-primary">➕ Register Patient</a></div>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">👥 Patients <span style="color:var(--text3);font-weight:400;font-size:13px">({{ total }})</span></span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>Patient</th><th>MRN</th><th>Age / Gender</th><th>Blood</th><th>Contact</th><th>Conditions</th><th>Status</th><th>Actions</th>
+      </tr></thead>
+      <tbody>
+        {% for p in patients %}
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--blue));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0">{{ p.first_name|first }}{{ p.last_name|first }}</div>
+              <div><div class="primary"><a href="{% url 'patient_detail' p.pk %}" style="color:var(--text);text-decoration:none">{{ p.full_name }}</a></div><div class="secondary">Registered {{ p.created_at|date:"d M Y" }}</div></div>
+            </div>
+          </td>
+          <td><span style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--blue)">{{ p.mrn }}</span></td>
+          <td><div>{{ p.age }} yrs</div><div class="secondary">{{ p.gender }}</div></td>
+          <td><span class="badge badge-red" style="font-family:var(--mono)">{{ p.blood_group|default:"—" }}</span></td>
+          <td><div>{{ p.phone }}</div><div class="secondary">{{ p.email|default:"—" }}</div></td>
+          <td><div style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--text2)">{{ p.chronic_conditions|default:"—"|truncatechars:40 }}</div></td>
+          <td><span class="badge {% if p.status == 'Active' %}badge-green{% elif p.status == 'Inactive' %}badge-amber{% else %}badge-slate{% endif %}">{{ p.status }}</span></td>
+          <td>
+            <div class="action-group">
+              <a href="{% url 'patient_detail' p.pk %}" class="btn btn-icon btn-secondary" title="View">👁</a>
+              <a href="{% url 'patient_edit' p.pk %}" class="btn btn-icon btn-secondary" title="Edit">✏️</a>
+              <a href="{% url 'visit_add' %}?patient={{ p.pk }}" class="btn btn-icon btn-secondary" title="Add Visit">📋</a>
+              <a href="{% url 'appointment_add' %}?patient={{ p.pk }}" class="btn btn-icon btn-secondary" title="Schedule">📅</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8"><div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">No patients found</div><div class="empty-sub">Try adjusting your search filters</div></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div style="padding:12px 20px;border-top:1px solid var(--border);font-size:12px;color:var(--text3)">
+    Showing {{ total }} patient{{ total|pluralize }}
+  </div>
+</div>
+{% endblock %}

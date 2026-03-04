@@ -1,0 +1,166 @@
+{% extends "patients/base.html" %}
+{% block title_suffix %} — {{ action }} Patient{% endblock %}
+{% block page_title %}{{ action }} Patient{% endblock %}
+{% block breadcrumb %}<a href="{% url 'patient_list' %}" style="color:var(--text3);text-decoration:none">Patients</a> › {{ action }}{% endblock %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data">
+{% csrf_token %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+  <div></div>
+  <div style="display:flex;gap:10px">
+    <a href="{% url 'patient_list' %}" class="btn btn-secondary">← Cancel</a>
+    <button type="submit" class="btn btn-primary">💾 {{ action }} Patient</button>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+
+<!-- PERSONAL INFO -->
+<div class="card">
+  <div class="card-header"><span class="card-title">👤 Personal Information</span></div>
+  <div class="card-body">
+    <div class="form-grid g-2">
+      <div class="form-group">
+        <label class="form-label required">First Name</label>
+        {{ form.first_name }}{{ form.first_name.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label required">Last Name</label>
+        {{ form.last_name }}{{ form.last_name.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label required">Date of Birth</label>
+        {{ form.date_of_birth }}{{ form.date_of_birth.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label required">Gender</label>
+        {{ form.gender }}{{ form.gender.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Blood Group</label>
+        {{ form.blood_group }}{{ form.blood_group.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        {{ form.status }}{{ form.status.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label required">Phone Number</label>
+        {{ form.phone }}{{ form.phone.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        {{ form.email }}{{ form.email.errors }}
+      </div>
+      <div class="form-group col-full">
+        <label class="form-label">Address</label>
+        {{ form.address }}{{ form.address.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">City</label>
+        {{ form.city }}{{ form.city.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">State</label>
+        {{ form.state }}{{ form.state.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">PIN Code</label>
+        {{ form.pincode }}{{ form.pincode.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Photo</label>
+        {{ form.photo }}{{ form.photo.errors }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:20px">
+
+<!-- EMERGENCY CONTACT -->
+<div class="card">
+  <div class="card-header"><span class="card-title">🚨 Emergency Contact</span></div>
+  <div class="card-body">
+    <div class="form-grid g-2">
+      <div class="form-group">
+        <label class="form-label">Contact Name</label>
+        {{ form.emergency_contact_name }}{{ form.emergency_contact_name.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contact Phone</label>
+        {{ form.emergency_contact_phone }}{{ form.emergency_contact_phone.errors }}
+      </div>
+      <div class="form-group col-full">
+        <label class="form-label">Relationship</label>
+        {{ form.emergency_contact_relation }}{{ form.emergency_contact_relation.errors }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INSURANCE -->
+<div class="card">
+  <div class="card-header"><span class="card-title">🛡️ Insurance Details</span></div>
+  <div class="card-body">
+    <div class="form-grid g-2">
+      <div class="form-group col-full">
+        <label class="form-label">Insurance Provider</label>
+        {{ form.insurance_provider }}{{ form.insurance_provider.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Policy Number</label>
+        {{ form.insurance_policy_number }}{{ form.insurance_policy_number.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Policy Expiry</label>
+        {{ form.insurance_expiry }}{{ form.insurance_expiry.errors }}
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end right col -->
+</div><!-- end grid -->
+
+<!-- MEDICAL HISTORY - full width -->
+<div class="card" style="margin-top:20px">
+  <div class="card-header"><span class="card-title">🩺 Medical History</span></div>
+  <div class="card-body">
+    <div class="form-grid g-2">
+      <div class="form-group">
+        <label class="form-label">Known Allergies</label>
+        {{ form.allergies }}{{ form.allergies.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Chronic Conditions</label>
+        {{ form.chronic_conditions }}{{ form.chronic_conditions.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Current Medications</label>
+        {{ form.current_medications }}{{ form.current_medications.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Past Surgical History</label>
+        {{ form.past_surgical_history }}{{ form.past_surgical_history.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Family Medical History</label>
+        {{ form.family_history }}{{ form.family_history.errors }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Additional Notes</label>
+        {{ form.notes }}{{ form.notes.errors }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+  <a href="{% url 'patient_list' %}" class="btn btn-secondary">Cancel</a>
+  <button type="submit" class="btn btn-primary">💾 {{ action }} Patient</button>
+</div>
+
+</form>
+{% endblock %}
